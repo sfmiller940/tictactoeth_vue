@@ -1,0 +1,23 @@
+@mixin bp($point) {
+  @if $point == xs {
+     @media (min-width: 450px) { @content ; }
+  }
+  @else if $point == xs2 {
+     @media (min-width: 550px) { @content ; }
+  }
+  @else if $point == sm {
+     @media (min-width: 769px) { @content ; }
+  }
+  @else if $point == sm_max {
+     @media (max-width: 768px) { @content ; }
+  }
+  @else if $point == md {
+     @media (min-width: 1024px) { @content ; }
+  }
+  @else if $point == md_max {
+     @media (max-width: 1024px) { @content ; }
+  }
+  @else if $point == xl {
+    @media (min-width: 1500px) { @content ; }
+  }
+}
