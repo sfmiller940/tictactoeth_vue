@@ -31,6 +31,15 @@ module.exports = {
     return (await ttt.fees.call()).toNumber();
   },
 
+  getGameEvents: async function(){
+    return new Promise((resolve,reject)=>{
+      ttt.gameEvent({fromBlock: "latest"}).get(function(e,events){
+        if(!e) resolve(events);
+        else reject(e);
+      });
+    });
+  },
+
   newGame: async function(address,bet,wager,turn,move){
     return await ttt.newGame( wager, turn, move, { from: address, value: bet })
       .then( tx => console.log('Game ' + tx.logs[0].args.id.toNumber() + ' created') )
@@ -39,7 +48,7 @@ module.exports = {
 
   cancelGame: async function(address, gameId){
     return await ttt.cancelGame(gameId,{from:address})
-      .then(()=> console.log('Game '+ gameId +' cancelled') )
+      .then( () => console.log('Game '+ gameId +' cancelled') )
       .catch( e => console.log('Failed to cancel game: '+e) );
   },
 

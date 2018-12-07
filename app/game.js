@@ -1,5 +1,5 @@
 module.exports = {
-  gameState: function(game, address){
+  setState: function(address, game){
     game['state']={
       'active':false,
       'open':false,
@@ -28,7 +28,7 @@ module.exports = {
     var open = 0;
     var over = 0;
     var usergames = {'total':0,'active':0,'open':0,'waiting':0};
-    games.forEach((game)=>{
+    games.forEach( game => {
       if( game.state.over ) return over++;
       escrow += game.bet;
       if( 1 < game.numMoves ) escrow += game.wager;
@@ -54,66 +54,3 @@ module.exports = {
     return getscore(b) - getscore(a);
   }
 }
-
-/*function processMove(game){
-
-  if( game.numMoves == 1 ){
-    Vue.set( vuedash, 'escrow', vuedash.escrow + game.wager );
-    Vue.set( vuedash.numgames, 'open', vuedash.numgames.open + 1 );
-    Vue.set( vuedash.numgames, 'total', vuedash.numgames.total + 1 );
-    if( game.state.player ){
-      Vue.set( vuedash.usergames, 'total', vuedash.usergames.total + 1 );
-      Vue.set( vuedash.usergames, 'open', vuedash.usergames.open + 1 );
-    } 
-  }
-  else if ( game.numMoves == 2){
-    Vue.set( vuedash, 'escrow', vuedash.escrow + game.bet );
-    Vue.set( vuedash.numgames, 'open', vuedash.numgames.open - 1 );
-    Vue.set( vuedash.numgames, 'inplay', vuedash.numgames.inplay + 1 );
-    if( game.state.playerX ){
-      Vue.set( vuedash.usergames, 'open', vuedash.usergames.open - 1 );
-      Vue.set( vuedash.usergames, 'active', vuedash.usergames.active + 1 );
-    }
-    if( game.state.playerO ){
-      Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting + 1 );
-    }
-  }
-  else{
-    if( game.numMoves % 2 == 1 ){
-      if(game.state.playerX){
-        Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting + 1 );
-        Vue.set( vuedash.usergames, 'active', vuedash.usergames.active - 1 );
-      }
-      if(game.state.playerO){
-        Vue.set( vuedash.usergames, 'active', vuedash.usergames.active + 1 );
-        Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting - 1 );
-      }
-    }
-    else{
-      if(game.state.playerO){
-        Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting + 1 );
-        Vue.set( vuedash.usergames, 'active', vuedash.usergames.active - 1 );
-      }
-      if(game.state.playerX){
-        Vue.set( vuedash.usergames, 'active', vuedash.usergames.active + 1 );
-        Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting - 1 );
-      }                
-    }
-  }
-
-  if(game.state.over){
-    Vue.set( vuedash, 'escrow', vuedash.escrow - game.bet - game.wager );
-    Vue.set( vuedash.numgames, 'over', vuedash.numgames.over + 1 );
-    Vue.set( vuedash.numgames, 'inplay', vuedash.numgames.inplay - 1 );
-    if( game.state.player ){
-      Vue.set( vuedash.usergames, 'total', vuedash.usergames.total - 1 );
-    }
-  }
-}
-
-
-module.exports = {
-  gameState:gameState,
-  gamesInfo:gamesInfo,
-  sortGames:sortGames
-}*/
