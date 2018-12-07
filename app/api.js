@@ -43,24 +43,24 @@ module.exports = {
   newGame: async function(address,bet,wager,turn,move){
     return await ttt.newGame( wager, turn, move, { from: address, value: bet })
       .then( tx => console.log('Game ' + tx.logs[0].args.id.toNumber() + ' created') )
-      .catch( e => console.log('Failed to create game: '+e) );
+      .catch( e => console.log('Failed to create game: ',e) );
   },
 
   cancelGame: async function(address, gameId){
     return await ttt.cancelGame(gameId,{from:address})
       .then( () => console.log('Game '+ gameId +' cancelled') )
-      .catch( e => console.log('Failed to cancel game: '+e) );
+      .catch( e => console.log('Failed to cancel game: ',e) );
   },
 
   joinGame: async function(address, gameId, wager, move){
     return await ttt.joinGame( gameId, move, { from: address, value: wager } )
       .then( () => console.log('Game ' + gameId + ' joined') )
-      .catch( e => console.log( 'Failed to join game: ' + e) );
+      .catch( e => console.log( 'Failed to join game: ',e) );
   },
 
   newMove: async function(address, gameId, move){
     return await ttt.newMove(gameId,move,{from:address})
       .then( () => console.log('Moved ' + move + ' in game ' + gameId) )
-      .catch( e => console.log('Failed to create move: '+e) );
+      .catch( e => console.log('Failed to create move: ',e) );
   }
 }

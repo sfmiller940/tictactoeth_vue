@@ -14,16 +14,16 @@ export default {
     joinGame: async function(gameId, wager, move){
       try{
         await apiJoinGame(this.accountaddr, gameId, wager, move)
-      } catch (e){ console.log('Unable to join game: '+e); }
+      } catch (e){ console.log('Unable to join game: ',e); }
     },
     newMove: async function(gameId, move){
       try{
         await apiNewMove(this.accountaddr, gameId, move)
-      } catch (e){ console.log('Unable to join game: '+e); }    },
+      } catch (e){ console.log('Unable to join game: ',e); }    },
     cancelGame: async function(gameId){
       try{
         await apiCancelGame(this.accountaddr, gameId)
-      } catch (e){ console.log('Unable to join game: '+e); }    },
+      } catch (e){ console.log('Unable to join game: ',e); }    },
     niceTime:function(time){
       var neg = '';
       if(time<0){

@@ -56,7 +56,7 @@ export default {
         var events = await apiGetGameEvents();
         events.forEach( event => this.updateGame( event.args.id.toNumber() ) );
       } 
-      else console.log(e);
+      else console.log('Unable to subscribe to blocks: ',e);
     });
 
   },
@@ -74,7 +74,7 @@ export default {
             apiGetFees()
           ]
         );
-      } catch(e){ console.log('Error refreshing header: '+e); }
+      } catch(e){ console.log('Error refreshing header: ',e); }
     },
 
     loadGames: async function(){
@@ -120,7 +120,7 @@ export default {
         
         this.games = games;
       } 
-      catch(e){ console.log('Error loading games: '+e); }
+      catch(e){ console.log('Error loading games: ',e); }
     },
 
     updateGame: async function(id){
@@ -145,7 +145,7 @@ export default {
 
         game = gm.setState(this.accountaddr, game);
 
-        //processMove(game);
+        this.processEvent(game);
 
         if( ! ( game.state.player || game.state.open ) ) return;
 
@@ -155,65 +155,120 @@ export default {
 
         this.games = this.games.sort(gm.sortGames);
       }
-      catch(e){ console.log('Error updating games: '+e); }
+      catch(e){ console.log('Error updating games: ',e); }
+    },
+
+    processEvent: function(game){
+      try{
+        if( game.state.over ){
+          this.numgames.over++;
+          this.numgames.inplay--;
+
+          if( game.deadline == 0 ) this.escrow -= this.bet;
+          else if( game.deadline == 1 ) this.escrow -= this.bet + this.wager;
+          else if( game.deadline == 2 || game.deadline == 3 )
+            this.escrow += ( this.bet + this.wager ) / 100; // Use contract parameter
+
+          if( game.state.player ){ // Needs work
+            if( game.numMoves == 1 ) this.usergames.open--;
+          }
+        }
+        else if( game.numMoves == 1 ){
+          this.escrow += game.bet;
+          this.numgames.open++;
+          this.numgames.total++;
+          if( game.state.player ){
+            this.usergames.total++;
+            this.usergames.open++;
+          } 
+        }
+        else if ( game.numMoves == 2 ){
+          this.escrow += game.wager;
+          this.numgames.open--;
+          this.numgames.inplay++;
+          if( game.state.playerX ){
+            this.usergames.open--;
+            this.usergames.active++;
+          }
+          if( game.state.playerO ){
+            this.usergames.waiting++;
+          }
+        }
+        else{
+          if( game.state.player ){
+            var factor = game.numMoves % 2,
+                alpha = -1 + 2 * factor,
+                beta = 1 - 2 * factor;
+            if(game.state.playerX){
+              this.usergames.waiting += alpha;
+              this.usergames.active  += beta;
+            }
+            if(game.state.playerO){
+              this.usergames.active += alpha;
+              this.usergames.waiting += beta;
+            }
+          }
+        }
+      }
+      catch(e){ console.log('Unable to process move: ',e) };
     }
   }
 }
 
-/*function processMove(game){
+/*function processEvent(game){
 
-  if( game.numMoves == 1 ){
-    Vue.set( vuedash, 'escrow', vuedash.escrow + game.wager );
-    Vue.set( vuedash.numgames, 'open', vuedash.numgames.open + 1 );
-    Vue.set( vuedash.numgames, 'total', vuedash.numgames.total + 1 );
-    if( game.state.player ){
-      Vue.set( vuedash.usergames, 'total', vuedash.usergames.total + 1 );
-      Vue.set( vuedash.usergames, 'open', vuedash.usergames.open + 1 );
-    } 
-  }
-  else if ( game.numMoves == 2){
-    Vue.set( vuedash, 'escrow', vuedash.escrow + game.bet );
-    Vue.set( vuedash.numgames, 'open', vuedash.numgames.open - 1 );
-    Vue.set( vuedash.numgames, 'inplay', vuedash.numgames.inplay + 1 );
-    if( game.state.playerX ){
-      Vue.set( vuedash.usergames, 'open', vuedash.usergames.open - 1 );
-      Vue.set( vuedash.usergames, 'active', vuedash.usergames.active + 1 );
-    }
-    if( game.state.playerO ){
-      Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting + 1 );
-    }
-  }
-  else{
-    if( game.numMoves % 2 == 1 ){
-      if(game.state.playerX){
-        Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting + 1 );
-        Vue.set( vuedash.usergames, 'active', vuedash.usergames.active - 1 );
-      }
-      if(game.state.playerO){
-        Vue.set( vuedash.usergames, 'active', vuedash.usergames.active + 1 );
-        Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting - 1 );
-      }
-    }
-    else{
-      if(game.state.playerO){
-        Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting + 1 );
-        Vue.set( vuedash.usergames, 'active', vuedash.usergames.active - 1 );
-      }
-      if(game.state.playerX){
-        Vue.set( vuedash.usergames, 'active', vuedash.usergames.active + 1 );
-        Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting - 1 );
-      }                
-    }
-  }
+        if( game.numMoves == 1 ){
+          Vue.set( vuedash, 'escrow', vuedash.escrow + game.bet );
+          Vue.set( vuedash.numgames, 'open', vuedash.numgames.open + 1 );
+          Vue.set( vuedash.numgames, 'total', vuedash.numgames.total + 1 );
+          if( game.state.player ){
+            Vue.set( vuedash.usergames, 'total', vuedash.usergames.total + 1 );
+            Vue.set( vuedash.usergames, 'open', vuedash.usergames.open + 1 );
+          } 
+        }
+        else if ( game.numMoves == 2){
+          Vue.set( vuedash, 'escrow', vuedash.escrow + game.wager );
+          Vue.set( vuedash.numgames, 'open', vuedash.numgames.open - 1 );
+          Vue.set( vuedash.numgames, 'inplay', vuedash.numgames.inplay + 1 );
+          if( game.state.playerX ){
+            Vue.set( vuedash.usergames, 'open', vuedash.usergames.open - 1 );
+            Vue.set( vuedash.usergames, 'active', vuedash.usergames.active + 1 );
+          }
+          if( game.state.playerO ){
+            Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting + 1 );
+          }
+        }
+        else{
+          if( game.numMoves % 2 == 1 ){
+            if(game.state.playerX){
+              Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting + 1 );
+              Vue.set( vuedash.usergames, 'active', vuedash.usergames.active - 1 );
+            }
+            if(game.state.playerO){
+              Vue.set( vuedash.usergames, 'active', vuedash.usergames.active + 1 );
+              Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting - 1 );
+            }
+          }
+          else{
+            if(game.state.playerO){
+              Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting + 1 );
+              Vue.set( vuedash.usergames, 'active', vuedash.usergames.active - 1 );
+            }
+            if(game.state.playerX){
+              Vue.set( vuedash.usergames, 'active', vuedash.usergames.active + 1 );
+              Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting - 1 );
+            }                
+          }
+        }
 
-  if(game.state.over){
-    Vue.set( vuedash, 'escrow', vuedash.escrow - game.bet - game.wager );
-    Vue.set( vuedash.numgames, 'over', vuedash.numgames.over + 1 );
-    Vue.set( vuedash.numgames, 'inplay', vuedash.numgames.inplay - 1 );
-    if( game.state.player ){
-      Vue.set( vuedash.usergames, 'total', vuedash.usergames.total - 1 );
-    }
-  }
+        if(game.state.over){
+          Vue.set( vuedash, 'escrow', vuedash.escrow - game.bet - game.wager );
+          Vue.set( vuedash.numgames, 'over', vuedash.numgames.over + 1 );
+          Vue.set( vuedash.numgames, 'inplay', vuedash.numgames.inplay - 1 );
+          if( game.state.player ){
+            Vue.set( vuedash.usergames, 'total', vuedash.usergames.total - 1 );
+          }
+        }
 }
 */
 </script>

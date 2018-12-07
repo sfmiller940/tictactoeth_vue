@@ -19,7 +19,7 @@ export default {
           web3.utils.toWei(this.bet.toString(), 'ether'),
           web3.utils.toWei(this.wager.toString(), 'ether'),
           turn,move)
-      } catch(e){ console.log('Failed to create new game: '+e); }
+      } catch(e){ console.log('Failed to create new game: ',e); }
     }
   }
 }
