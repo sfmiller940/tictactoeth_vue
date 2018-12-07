@@ -1,3 +1,12 @@
+<script>
+export default {
+  props:[ 'numgames', 'escrow','contractbal', 'fees', 'motheraddr' ],
+  data: function() {
+    return {};
+  }
+}
+</script>
+
 <template>
 <div class="contractinfo">
   <h1>tictactoeth</h1>
@@ -14,15 +23,6 @@
   </table>
 </div>
 </template>
-
-<script>
-export default {
-  props:[ 'blocknum', 'numgames', 'escrow','contractbal', 'fees', 'motheraddr' ],
-  data: function() {
-    return {};
-  }
-}
-</script>
 
 <style lang="scss" scoped>
 h1{

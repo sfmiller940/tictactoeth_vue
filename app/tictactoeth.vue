@@ -1,15 +1,18 @@
 <script>
 var api = require('./api')
+var gm = require('./game')
 import userinfo from './components/userinfo'
 import newgame from './components/newgame'
 import contractinfo from './components/contractinfo'
+import listgames from './components/listgames'
 
 export default {
   name: 'tictactoeth',
   components: {
     userinfo,
     newgame,
-    contractinfo
+    contractinfo,
+    listgames
   },
   data: function(){
     return {
@@ -17,7 +20,7 @@ export default {
       'accountaddr': 0,
       'accountbal': 0,
       'contractbal':0,
-      'blocknum':0,
+      'blocknumber':0,
       'fees':0,
       'games':[],
       'escrow':0,
@@ -36,20 +39,61 @@ export default {
     };
   },
   mounted:function(){
-    this.refreshHeader();
+    this.refreshHeader().then( this.loadGames() );
   },
   methods:{
-    newGame:function(){},
-    note:function(){},
     refreshHeader: async function(){  
-      this.accountaddr = (await api.getAccounts())[0];
-      [this.accountbal,this.contractbal,this.blocknum,this.fees] = await Promise.all([
-        api.getBalance(this.accountaddr),
-        api.getBalance(ttt.address),
-        api.getBlockNumber(),
-        api.getFees()
-      ]);
-    }    
+      try{
+        this.accountaddr = (await api.getAccounts())[0];
+        [this.accountbal,this.contractbal,this.blocknumber,this.fees] = await Promise.all([
+          api.getBalance(this.accountaddr),
+          api.getBalance(ttt.address),
+          api.getBlockNumber(),
+          api.getFees()
+        ]);
+      } catch(e){ console.log('Error refreshing header: '+e); }
+    },
+    loadGames: async function(){
+      try{
+        this.numgames.total = (await ttt.numGames.call()).toNumber();
+        var games = new Array(this.numgames.total).fill(0);
+        await Promise.all(
+          games.map((blank,index)=>{
+            var ind = index;
+            return Promise.all([
+              ttt.games.call(ind),
+              ttt.getMoves.call(ind)
+            ]);
+          })
+        ).then((data)=>{
+          data.forEach(([game,moves],i)=>{
+            games[i]={
+              'id':i,
+              'playerX':game[0],
+              'playerO':game[1],
+              'bet': game[2].toNumber(),
+              'wager': game[3].toNumber(),
+              'turn':game[4].toNumber(),
+              'deadline': game[5].toNumber(),
+              'numMoves':game[6].toNumber(),
+              'moves': moves.map((move)=>{ return move.toNumber(); })
+            };
+          });
+        });
+        games = games.map((game) => gm.gameState(game, this.accountaddr) );
+        [
+          this.escrow, 
+          this.usergames, 
+          this.numgames.over, 
+          this.numgames.open, 
+          this.numgames.inplay
+        ] = gm.gamesInfo(games);
+        games = games
+          .filter( game => game.state.player || game.state.open )
+          .sort(gm.sortGames);
+        this.games = games;
+      } catch(e){ console.log('Error loading games: '+e); }
+    }
   }
 }
 </script>
@@ -70,10 +114,13 @@ export default {
       :usergames="usergames">
     </userinfo>
     <newgame
-      :blocknum="blocknum"
-      v-on:newgame="newGame"
-      v-on:note="note">
+      :accountaddr="accountaddr"
+      :blocknumber="blocknumber">
     </newgame>
+    <listgames
+      :accountaddr="accountaddr"
+      :games="games">
+    </listgames>
   </header>
 </div>
 </template>
@@ -146,6 +193,12 @@ h3 {
 
 .newgame{
   background: rgba(255,0,255,0.5);
+}
+
+.listgames{
+  float: left;
+  width: 100%;
+  clear: both;
 }
 
 @include bp(xs2){

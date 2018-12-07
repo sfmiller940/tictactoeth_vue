@@ -1,3 +1,12 @@
+<script>
+export default {
+  props:[ 'accountaddr', 'accountbal', 'usergames' ],
+  data: function() {
+    return {};
+  }
+}
+</script>
+
 <template>
 <div class="userinfo">
   <h2>your account</h2>
@@ -11,15 +20,6 @@
   </table>
 </div>
 </template>
-
-<script>
-export default {
-  props:[ 'accountaddr', 'accountbal', 'usergames' ],
-  data: function() {
-    return {};
-  }
-}
-</script>
 
 <style lang="scss" scoped>
 table{

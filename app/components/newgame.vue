@@ -1,14 +1,41 @@
+<script>
+import { newGame as apiNewGame } from '../api'
+
+export default {
+  props:['accountaddr','blocknumber'],
+  data: function() {
+    return {
+      bet: 0.00001,
+      wager: 0.00001,
+      turn: { 'days': 3, 'hours': 0, 'minutes': 0 }
+    };
+  },
+  methods:{
+    newGame:async function( move ){
+      try{
+        var turn = (this.turn.days * 86400 ) + (this.turn.hours * 3600) + ( this.turn.minutes * 60 );
+        await apiNewGame(
+          this.accountaddr,
+          web3.utils.toWei(this.bet.toString(), 'ether'),
+          web3.utils.toWei(this.wager.toString(), 'ether'),
+          turn,move)
+      } catch(e){ console.log('Failed to create new game: '+e); }
+    }
+  }
+}
+</script>
+
 <template>
 <div class="newgame">
-  <h2>new game / block {{blocknum}}</h2>
+  <h2>new game / block {{blocknumber}}</h2>
   <header>
     <div class="input">
-      Your Wager
-      <input type="number" v-model.number="wager" placeholder="Your Wager">
+      Your Bet
+      <input type="number" v-model.number="bet" placeholder="Your Bet">
     </div>
     <div class="input">
-      Opponent's Bet
-      <input type="number" v-model.number="bet" placeholder="Opponent's Bet">
+      Opponent's Wager
+      <input type="number" v-model.number="wager" placeholder="Opponent's Wager">
     </div>
     <div class="input">
       Turn Length<br>
@@ -49,31 +76,6 @@
   </footer>
 </div>
 </template>
-
-<script>
-export default {
-  props:['blocknum'],
-  data: function() {
-    return {
-      wager: 0.00001,
-      bet: 0.00001,
-      turn: { 'days': 3, 'hours': 0, 'minutes': 0 }
-    };
-  },
-  methods:{
-    newGame:function( move ){
-      /*if( this.turn < 300 || 864000 < this.turn )
-        this.$emit('note', 'Please choose a turn length between 5 minutes and 10 days.');
-      else{
-        var turn = (this.turn.days * 86400 ) + (this.turn.hours * 3600) + ( this.turn.minutes * 60 );
-        if( turn < 300 || 864000 < turn )
-          this.$emit('note','Please select a turn length between 5 minutes and 10 days.');
-        else this.$emit('newgame', this.wager, this.bet, turn, move );
-      }*/
-    }
-  }
-}
-</script>
 
 <style lang="scss" scoped>
 @import '../scss/mixins';
@@ -146,12 +148,18 @@ header{
 .gamegrid{
   display: inline-block;
   width: 100%;
+  border: 1px solid #000;
 
   .move{
     float: left;
     width: 33.33%;
     border: 1px solid #000;
     box-sizing: border-box;
+
+    &:nth-child(3n){
+      width: 33.34%
+    }
+
   }
 
   button{
