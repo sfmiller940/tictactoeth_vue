@@ -173,21 +173,21 @@ export default {
       :escrow="escrow"
       :contractbal="contractbal"
       :fees="fees"
-      :motheraddr="motherAddr">
-    </contractinfo>
+      :motheraddr="motherAddr"
+    />
     <userinfo
       :accountaddr="accountaddr"
       :accountbal="accountbal"
-      :usergames="usergames">
-    </userinfo>
+      :usergames="usergames"
+    />
     <newgame
       :accountaddr="accountaddr"
-      :blocknumber="blocknumber">
-    </newgame>
+      :blocknumber="blocknumber"
+    />
     <listgames
       :accountaddr="accountaddr"
-      :games="games">
-    </listgames>
+      :games="games"
+    />
   </header>
 </div>
 </template>
