@@ -1,11 +1,10 @@
 import { default as Web3 } from 'web3';
 import { default as contract } from 'truffle-contract'
 import artifacts from '../../tictactoeth_sol/build/contracts/tictactoeth.json'
+var tttcontract = contract(artifacts);
 
 import Vue from 'vue'
-Vue.config.productionTip = false
 import tictactoeth from './tictactoeth'
-var tttcontract = contract(artifacts);
 
 window.addEventListener('load', function() {
   if (typeof web3 !== 'undefined') {

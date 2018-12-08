@@ -3,6 +3,7 @@ import { newGame as apiNewGame } from '../api'
 
 export default {
   props:['accountaddr','blocknumber'],
+
   data: function() {
     return {
       bet: 0.00001,
@@ -10,7 +11,9 @@ export default {
       turn: { 'days': 3, 'hours': 0, 'minutes': 0 }
     };
   },
+
   methods:{
+
     newGame:async function( move ){
       try{
         var turn = (this.turn.days * 86400 ) + (this.turn.hours * 3600) + ( this.turn.minutes * 60 );

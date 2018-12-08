@@ -16,12 +16,14 @@ import listgames from './components/listgames'
 
 export default {
   name: 'tictactoeth',
+
   components: {
     userinfo,
     newgame,
     contractinfo,
     listgames
   },
+
   data: function(){
     return {
       'motherAddr': ttt.address,
@@ -46,7 +48,8 @@ export default {
       }
     };
   },
-  mounted:function(){
+
+  mounted: function(){
     var self=this;
     this.refreshHeader().then( this.loadGames() );
 
@@ -56,11 +59,12 @@ export default {
         var events = await apiGetGameEvents();
         events.forEach( event => this.updateGame( event.args.id.toNumber() ) );
       } 
-      else console.log('Unable to subscribe to blocks: ',e);
+      else console.log('Block subscription error: ',e);
     });
-
   },
+
   methods:{
+
     refreshHeader: async function(){  
       try{
         this.accountaddr = (await apiGetAccounts())[0];
@@ -105,14 +109,12 @@ export default {
           });
         });
 
-        games = games.map( game => gm.setState(this.accountaddr, game) );
+        games = games.map( game => gm.setGameState(this.accountaddr, game) );
         
         [ this.escrow, 
           this.usergames, 
-          this.numgames.over, 
-          this.numgames.open, 
-          this.numgames.inplay
-        ] = gm.gamesInfo(games);
+          this.numgames
+        ] = gm.getGamesInfo(games);
         
         games = games
           .filter( game => game.state.player || game.state.open )
@@ -143,134 +145,24 @@ export default {
           };
         });
 
-        game = gm.setState(this.accountaddr, game);
+        game = gm.setGameState(this.accountaddr, game);
 
-        this.processEvent(game);
+        [this.escrow, this.numgames] = gm.updateContractInfo(this.escrow, this.numgames, game);
+        if(game.state.player)
+          this.usergames = gm.updateUserGames(this.usergames, game);
 
-        if( ! ( game.state.player || game.state.open ) ) return;
+        if( game.state.player || game.state.open ){
+          var ind = this.games.findIndex( game => game.id == id );
+          if( ind == -1 ) this.games.push(game);
+          else this.games[ind] = game;
 
-        var ind = this.games.findIndex( game => game.id == id );
-        if( ind == -1 ) this.games.push(game);
-        else this.games[ind] = game;
-
-        this.games = this.games.sort(gm.sortGames);
+          this.games = this.games.sort(gm.sortGames);
+        }
       }
       catch(e){ console.log('Error updating games: ',e); }
-    },
-
-    processEvent: function(game){
-      try{
-        if( game.state.over ){
-          this.numgames.over++;
-          this.numgames.inplay--;
-
-          if( game.deadline == 0 ) this.escrow -= this.bet;
-          else if( game.deadline == 1 ) this.escrow -= this.bet + this.wager;
-          else if( game.deadline == 2 || game.deadline == 3 )
-            this.escrow += ( this.bet + this.wager ) / 100; // Use contract parameter
-
-          if( game.state.player ){ // Needs work
-            if( game.numMoves == 1 ) this.usergames.open--;
-          }
-        }
-        else if( game.numMoves == 1 ){
-          this.escrow += game.bet;
-          this.numgames.open++;
-          this.numgames.total++;
-          if( game.state.player ){
-            this.usergames.total++;
-            this.usergames.open++;
-          } 
-        }
-        else if ( game.numMoves == 2 ){
-          this.escrow += game.wager;
-          this.numgames.open--;
-          this.numgames.inplay++;
-          if( game.state.playerX ){
-            this.usergames.open--;
-            this.usergames.active++;
-          }
-          if( game.state.playerO ){
-            this.usergames.waiting++;
-          }
-        }
-        else{
-          if( game.state.player ){
-            var factor = game.numMoves % 2,
-                alpha = -1 + 2 * factor,
-                beta = 1 - 2 * factor;
-            if(game.state.playerX){
-              this.usergames.waiting += alpha;
-              this.usergames.active  += beta;
-            }
-            if(game.state.playerO){
-              this.usergames.active += alpha;
-              this.usergames.waiting += beta;
-            }
-          }
-        }
-      }
-      catch(e){ console.log('Unable to process move: ',e) };
     }
   }
 }
-
-/*function processEvent(game){
-
-        if( game.numMoves == 1 ){
-          Vue.set( vuedash, 'escrow', vuedash.escrow + game.bet );
-          Vue.set( vuedash.numgames, 'open', vuedash.numgames.open + 1 );
-          Vue.set( vuedash.numgames, 'total', vuedash.numgames.total + 1 );
-          if( game.state.player ){
-            Vue.set( vuedash.usergames, 'total', vuedash.usergames.total + 1 );
-            Vue.set( vuedash.usergames, 'open', vuedash.usergames.open + 1 );
-          } 
-        }
-        else if ( game.numMoves == 2){
-          Vue.set( vuedash, 'escrow', vuedash.escrow + game.wager );
-          Vue.set( vuedash.numgames, 'open', vuedash.numgames.open - 1 );
-          Vue.set( vuedash.numgames, 'inplay', vuedash.numgames.inplay + 1 );
-          if( game.state.playerX ){
-            Vue.set( vuedash.usergames, 'open', vuedash.usergames.open - 1 );
-            Vue.set( vuedash.usergames, 'active', vuedash.usergames.active + 1 );
-          }
-          if( game.state.playerO ){
-            Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting + 1 );
-          }
-        }
-        else{
-          if( game.numMoves % 2 == 1 ){
-            if(game.state.playerX){
-              Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting + 1 );
-              Vue.set( vuedash.usergames, 'active', vuedash.usergames.active - 1 );
-            }
-            if(game.state.playerO){
-              Vue.set( vuedash.usergames, 'active', vuedash.usergames.active + 1 );
-              Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting - 1 );
-            }
-          }
-          else{
-            if(game.state.playerO){
-              Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting + 1 );
-              Vue.set( vuedash.usergames, 'active', vuedash.usergames.active - 1 );
-            }
-            if(game.state.playerX){
-              Vue.set( vuedash.usergames, 'active', vuedash.usergames.active + 1 );
-              Vue.set( vuedash.usergames, 'waiting', vuedash.usergames.waiting - 1 );
-            }                
-          }
-        }
-
-        if(game.state.over){
-          Vue.set( vuedash, 'escrow', vuedash.escrow - game.bet - game.wager );
-          Vue.set( vuedash.numgames, 'over', vuedash.numgames.over + 1 );
-          Vue.set( vuedash.numgames, 'inplay', vuedash.numgames.inplay - 1 );
-          if( game.state.player ){
-            Vue.set( vuedash.usergames, 'total', vuedash.usergames.total - 1 );
-          }
-        }
-}
-*/
 </script>
 
 <template>

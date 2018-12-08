@@ -1,5 +1,6 @@
 module.exports = {
-  setState: function(address, game){
+
+  setGameState: function(address, game){
     game['state']={
       'active':false,
       'open':false,
@@ -23,24 +24,25 @@ module.exports = {
     return game;
   },
 
-  gamesInfo: function(games){
-    var escrow = 0;
-    var open = 0;
-    var over = 0;
-    var usergames = {'total':0,'active':0,'open':0,'waiting':0};
+  getGamesInfo: function(games){
+    var escrow = 0,
+        numgames = {'inplay':0,'open':0,'over':0,'total':games.length};
+        usergames = {'total':0,'active':0,'open':0,'waiting':0};
+
     games.forEach( game => {
-      if( game.state.over ) return over++;
+      if( game.state.over ) return numgames.over++;
       escrow += game.bet;
       if( 1 < game.numMoves ) escrow += game.wager;
-      if(game.state.open) open++;
+      if(game.state.open) numgames.open++;
       if(game.state.player){
         usergames.total++;
         if( game.state.open) usergames.open++;
-        else if( game.state.active) usergames.active++;
-        else usergames.waiting++; 
+        if( game.state.active) usergames.active++;
+        if( ! ( game.state.open || game.state.active ) ) usergames.waiting++; 
       }
     });
-    return[escrow,usergames,over,open,games.length - over - open]
+    numgames.inplay = numgames.total - numgames.open - numgames.over;
+    return[escrow,usergames,numgames]
   },
 
   sortGames: function(a,b){
@@ -52,5 +54,83 @@ module.exports = {
       return 1;
     }
     return getscore(b) - getscore(a);
+  },
+
+  updateContractInfo:function(escrow, numgames, game){
+    if( game.state.over ){
+      numgames.over++;
+      if( game.numMoves == 1 ) numgames.open--;
+      else numgames.inplay--;
+
+      if( game.deadline == 0 ) escrow -= game.bet;
+      else if( game.deadline == 1 ) escrow -= game.bet + game.wager;
+      else if( game.deadline == 2 || game.deadline == 3 )
+        escrow += ( game.bet + game.wager ) / 100; // Use contract parameter
+    }
+    else if( game.numMoves == 1 ){
+      escrow += game.bet;
+      numgames.open++;
+      numgames.total++;
+    }
+    else if ( game.numMoves == 2 ){
+      escrow += game.wager;
+      numgames.open--;
+      numgames.inplay++;
+    }
+    return[escrow, numgames];
+  },
+
+  updateUserGames:function(usergames, game){
+    var parity = game.numMoves % 2,
+        gamma = ( parity + 1 ) % 2,
+        alpha = 1 - 2 * parity,
+        beta = -1 + 2 * parity;
+    if( game.state.over ){
+      if( game.deadline == 0 ) usergames.open--;
+      else if( game.state.playerX && game.state.playerO ) usergames.active--;
+      else if( game.deadline == 3 ){
+        if(game.state.playerX){
+          usergames.active -= gamma;
+          usergames.waiting -= parity;
+        }
+        else if(game.state.playerO){
+          usergames.active -= parity;
+          usergames.waiting -= gamma;
+        }     
+      } else {
+          if(game.state.playerX){
+            usergames.active -= parity;
+            usergames.waiting -= gamma;
+          }
+          else if(game.state.playerO){
+            usergames.active -= gamma;
+            usergames.waiting -= parity;
+          }
+      }
+    }
+    else if( game.numMoves == 1 ){
+      usergames.total++;
+      usergames.open++;
+    }
+    else if ( game.numMoves == 2 ){
+      if( game.state.playerX ){
+        usergames.open--;
+        usergames.active++;
+      }
+      else if( game.state.playerO ){
+        usergames.waiting++;
+      }
+    }
+    else{
+      if(game.state.playerX){
+        usergames.active  += alpha;
+        usergames.waiting += beta;
+      }
+      if(game.state.playerO){
+        usergames.active += beta;
+        usergames.waiting += alpha;
+      }
+    }
+    return usergames;
   }
 }
