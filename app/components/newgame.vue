@@ -2,7 +2,7 @@
 import { newGame as apiNewGame } from '../api'
 
 export default {
-  props:['accountaddr','blocknumber'],
+  props:['useraddr','blocknumber'],
 
   data: function() {
     return {
@@ -18,7 +18,7 @@ export default {
       try{
         var turn = (this.turn.days * 86400 ) + (this.turn.hours * 3600) + ( this.turn.minutes * 60 );
         await apiNewGame(
-          this.accountaddr,
+          this.useraddr,
           web3.utils.toWei(this.bet.toString(), 'ether'),
           web3.utils.toWei(this.wager.toString(), 'ether'),
           turn,move)

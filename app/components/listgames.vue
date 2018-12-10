@@ -6,7 +6,7 @@ import {
 } from '../api'
 
 export default {
-  props: ['accountaddr', 'games'],
+  props: ['useraddr', 'games'],
 
   data: function() {
     return {};
@@ -16,19 +16,19 @@ export default {
 
     joinGame: async function(gameId, wager, move){
       try{
-        await apiJoinGame(this.accountaddr, gameId, wager, move)
+        await apiJoinGame(this.useraddr, gameId, wager, move)
       } catch (e){ console.log('Unable to join game: ',e); }
     },
 
     newMove: async function(gameId, move){
       try{
-        await apiNewMove(this.accountaddr, gameId, move)
+        await apiNewMove(this.useraddr, gameId, move)
       } catch (e){ console.log('Unable to join game: ',e); }    
     },
     
     cancelGame: async function(gameId){
       try{
-        await apiCancelGame(this.accountaddr, gameId)
+        await apiCancelGame(this.useraddr, gameId)
       } catch (e){ console.log('Unable to join game: ',e); }    
     },
     
@@ -53,11 +53,24 @@ export default {
     v-bind:class="{
       'active': game.state.active,
       'player': game.state.player,
-      'open':game.state.open }"
+      'open':game.state.open,
+      'over':game.state.over }"
     >
     <h3>{{game.id}}</h3>
-    <button class="gamebutton" v-if="1 < game.numMoves && game.deadline - ( new Date().getTime() / 1000 ) < 0" v-on:click="newMove( game.id, 0 )">Expire Game</button>
-    <button class="gamebutton cancel" v-else-if="game.state.open && game.state.player" v-on:click="cancelGame( game.id )">Cancel Game</button>
+    <button class="gamebutton" 
+      v-if="(! game.state.over) && 1 < game.numMoves && game.deadline - ( new Date().getTime() / 1000 ) < 0" 
+      v-on:click="newMove( game.id, 0 )"
+      >Expire Game</button>
+    <button class="gamebutton cancel" 
+      v-else-if="(! game.state.over) && game.state.open && game.state.player" 
+      v-on:click="cancelGame( game.id )"
+      >Cancel Game</button>
+    <div v-if="game.state.over" class="over-status">
+      <span v-if="game.deadline==0">Cancelled</span>
+      <span v-else-if="game.deadline==1">WINNER!</span>
+      <span v-else-if="game.deadline==2">Stalemate</span>
+      <span v-else-if="game.deadline==3">Timeout</span>
+    </div>
     <div class="moves">
       <div class="move" v-for="(move, index) in game.moves">
         <div class="move1" v-if="move === 1"><i class="fa fa-times"></i></div>
@@ -73,11 +86,11 @@ export default {
     </div>
     <footer>
       <div class="players">
-        <span v-bind:class="{'player': game.playerX == accountaddr }">{{game.bet / 1000000000000000000}} ETH - X {{game.playerX}}</span><br>
-        <span v-bind:class="{'player': game.playerO == accountaddr }">{{game.wager / 1000000000000000000}} ETH - {{ game.state.open ? 'Pay' : 'O ' + game.playerO}}</span>
+        <span v-bind:class="{'player': game.playerX == useraddr }">{{game.bet / 1000000000000000000}} ETH - X {{game.playerX}}</span><br>
+        <span v-bind:class="{'player': game.playerO == useraddr }">{{game.wager / 1000000000000000000}} ETH - {{ game.state.open ? 'Pay' : 'O ' + game.playerO}}</span>
       </div>
       <div class="total">{{ (game.wager + game.bet) / 1000000000000000000 }} ETH - Win!</div>
-      <div class="expires" v-if="1 < game.numMoves">
+      <div class="expires" v-if="1 < game.numMoves && ! game.state.over">
           <span class="timeleft" v-if="0 < game.deadline - ( new Date().getTime() / 1000 )">
             Time Left:
           </span>
@@ -86,7 +99,7 @@ export default {
           </span>
           {{ niceTime( game.deadline - ( new Date().getTime() / 1000 ) ) }}
       </div>
-      <div class="expires" v-else>
+      <div class="expires" v-else-if="! game.state.over">
         Turn Length: {{ niceTime( game.turn ) }}
       </div>
     </footer>
@@ -123,6 +136,10 @@ export default {
 
   &.active{
     background: rgba(255,0,0,0.5);
+  }
+
+  &.over{
+    background: rgba(0,0,0,0.5) !important;
   }
 
   @include bp(xs2){
@@ -217,6 +234,7 @@ export default {
     margin: 0 0 0.5rem;
   }
 
+  .over-status,
   &.player:not(.open):not(.active) button.gamebutton,
   .gamebutton{
     position: absolute;
@@ -236,6 +254,10 @@ export default {
       border: 1px solid #00f;
       background: #f00;
     }
+  }
+  .over-status{
+    background: none;
+    border: none;
   }
 
   .players{

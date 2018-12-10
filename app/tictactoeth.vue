@@ -2,7 +2,7 @@
 var gm = require('./game')
 
 import {
-  getAccounts as apiGetAccounts,
+  getAccount as apiGetAccount,
   getBalance as apiGetBalance,
   getBlockNumber as apiGetBlockNumber,
   getFees as apiGetFees,
@@ -26,38 +26,42 @@ export default {
 
   data: function(){
     return {
-      'motherAddr': ttt.address,
-      'accountaddr': 0,
-      'accountbal': 0,
-      'contractbal':0,
       'blocknumber':0,
-      'fees':0,
       'games':[],
-      'escrow':0,
-      'numgames':{
-        'inplay':0,
-        'open':0,
-        'over':0,
-        'total':0
+      'contract':{
+        'address': ttt.address,
+        'balance': 0,
+        'escrow':0,
+        'fees':0,
+        'numgames':{
+          'inplay':0,
+          'open':0,
+          'over':0,
+          'total':0
+        }   
       },
-      'usergames':{
-        'total':0,
-        'active':0,
-        'open':0,
-        'waiting':0
+      'user':{
+        'address':0,
+        'balance':0,
+        'numgames':{
+          'total':0,
+          'active':0,
+          'open':0,
+          'waiting':0 
+        }
       }
     };
   },
 
   mounted: function(){
     var self=this;
-    this.refreshHeader().then( this.loadGames() );
+    this.refreshHeader().then(() => this.loadGames());
 
     web3.eth.subscribe('newBlockHeaders',async (e,data)=>{
       if(!e){ 
         this.refreshHeader();
         var events = await apiGetGameEvents();
-        events.forEach( event => this.updateGame( event.args.id.toNumber() ) );
+        events.forEach( event => this.updateGame(event.args.id.toNumber()));
       } 
       else console.log('Block subscription error: ',e);
     });
@@ -67,55 +71,42 @@ export default {
 
     refreshHeader: async function(){  
       try{
-        this.accountaddr = (await apiGetAccounts())[0];
-        [ this.accountbal,
-          this.contractbal,
-          this.blocknumber,
-          this.fees] = await Promise.all([
-            apiGetBalance(this.accountaddr),
-            apiGetBalance(ttt.address),
-            apiGetBlockNumber(),
-            apiGetFees()
-          ]
-        );
+        this.contract.numgames.total = (await ttt.numGames.call()).toNumber();
+        this.user.address = await apiGetAccount();
+        [ this.blocknumber,
+          this.contract.balance,
+          this.contract.fees,
+          this.user.balance
+        ] = await Promise.all([
+          apiGetBlockNumber(),
+          apiGetBalance(this.contract.address),
+          apiGetFees(),
+          apiGetBalance(this.user.address)
+        ]);
       } catch(e){ console.log('Error refreshing header: ',e); }
     },
 
     loadGames: async function(){
       try{
-        this.numgames.total = (await ttt.numGames.call()).toNumber();
-        var games = new Array(this.numgames.total).fill(0);
+        var games = new Array(this.contract.numgames.total).fill(0);
         await Promise.all(
-          games.map((blank,index)=>{
-            var ind = index;
+          games.map((blank,id)=>{
             return Promise.all([
-              ttt.games.call(ind),
-              ttt.getMoves.call(ind)
+              ttt.games.call(id),
+              ttt.getMoves.call(id)
             ]);
           })
-        ).then( data => {
-          data.forEach(([game,moves],i)=>{
-            games[i]={
-              'id':i,
-              'playerX':game[0],
-              'playerO':game[1],
-              'bet': game[2].toNumber(),
-              'wager': game[3].toNumber(),
-              'turn':game[4].toNumber(),
-              'deadline': game[5].toNumber(),
-              'numMoves':game[6].toNumber(),
-              'moves': moves.map( move => move.toNumber() )
-            };
+        ).then(data => {
+          data.forEach(([game,moves],id)=>{
+            games[id] = gm.processData(this.user.address, id, game, moves);
           });
         });
 
-        games = games.map( game => gm.setGameState(this.accountaddr, game) );
-        
-        [ this.escrow, 
-          this.usergames, 
-          this.numgames
+        [ this.contract.escrow, 
+          this.contract.numgames, 
+          this.user.numgames
         ] = gm.getGamesInfo(games);
-        
+
         games = games
           .filter( game => game.state.player || game.state.open )
           .sort(gm.sortGames);
@@ -127,29 +118,19 @@ export default {
 
     updateGame: async function(id){
       try{
-        var game;
-        await Promise.all([
-          ttt.games.call(id),
-          ttt.getMoves.call(id)
-        ]).then(([_game,moves])=>{
-          game = {
-            'id':id,
-            'playerX':_game[0],
-            'playerO':_game[1],
-            'wager': _game[2].toNumber(),
-            'bet': _game[3].toNumber(),
-            'turn':_game[4].toNumber(),
-            'deadline': _game[5].toNumber(),
-            'numMoves':_game[6].toNumber(),
-            'moves': moves.map( move => move.toNumber() )
-          };
-        });
+        var game = await Promise.all([
+            ttt.games.call(id),
+            ttt.getMoves.call(id)
+          ]).then(([game,moves])=>{ 
+            return gm.processData(this.user.address, id, game, moves); 
+          });
 
-        game = gm.setGameState(this.accountaddr, game);
+        [ this.contract.escrow, 
+          this.contract.numgames
+        ] = gm.updateContractInfo( this.contract.escrow, this.contract.numgames, game);
 
-        [this.escrow, this.numgames] = gm.updateContractInfo(this.escrow, this.numgames, game);
         if(game.state.player)
-          this.usergames = gm.updateUserGames(this.usergames, game);
+          this.user.numgames = gm.updateUserGames(this.user.numgames, game);
 
         if( game.state.player || game.state.open ){
           var ind = this.games.findIndex( game => game.id == id );
@@ -169,23 +150,17 @@ export default {
 <div id="tictactoeth">
   <header>
     <contractinfo
-      :numgames="numgames"
-      :escrow="escrow"
-      :contractbal="contractbal"
-      :fees="fees"
-      :motheraddr="motherAddr"
+      :contract="contract"
     />
     <userinfo
-      :accountaddr="accountaddr"
-      :accountbal="accountbal"
-      :usergames="usergames"
+      :user="user"
     />
     <newgame
-      :accountaddr="accountaddr"
+      :useraddr="user.address"
       :blocknumber="blocknumber"
     />
     <listgames
-      :accountaddr="accountaddr"
+      :useraddr="user.address"
       :games="games"
     />
   </header>

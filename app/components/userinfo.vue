@@ -1,6 +1,6 @@
 <script>
 export default {
-  props:[ 'accountaddr', 'accountbal', 'usergames' ],
+  props:[ 'user' ],
   data: function() {
     return {};
   }
@@ -11,12 +11,12 @@ export default {
 <div class="userinfo">
   <h2>your account</h2>
   <table>
-    <tr class="address"><td>Address:</td><td>{{ accountaddr }}</td></tr>
-    <tr class="balance"><td>Balance:</td><td>{{ (accountbal/1000000000000000000).toFixed(18)}} ETH</td></tr>
-    <tr class="active"><td>Your Move:</td><td>{{ usergames.active }}</td></tr>
-    <tr class="waiting"><td>Waiting:</td><td>{{ usergames.waiting }}</td></tr>
-    <tr class="open"><td>Open:</td><td>{{ usergames.open }}</td></tr>
-    <tr class="total"><td>Games:</td><td>{{ usergames.total }}</td></tr>
+    <tr class="address"><td>Address:</td><td>{{ user.address }}</td></tr>
+    <tr class="balance"><td>Balance:</td><td>{{(user.balance / 1000000000000000000).toFixed(18)}} ETH</td></tr>
+    <tr class="active"><td>Your Move:</td><td>{{ user.numgames.active }}</td></tr>
+    <tr class="waiting"><td>Waiting:</td><td>{{ user.numgames.waiting }}</td></tr>
+    <tr class="open"><td>Open:</td><td>{{ user.numgames.open }}</td></tr>
+    <tr class="total"><td>Games:</td><td>{{ user.numgames.total }}</td></tr>
   </table>
 </div>
 </template>

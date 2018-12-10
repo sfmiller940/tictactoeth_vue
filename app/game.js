@@ -1,5 +1,22 @@
 module.exports = {
 
+  processData: function(address,id,game,moves){
+    return this.setGameState(
+      address,
+      {
+        'id':id,
+        'playerX':game[0],
+        'playerO':game[1],
+        'bet': game[2].toNumber(),
+        'wager': game[3].toNumber(),
+        'turn':game[4].toNumber(),
+        'deadline': game[5].toNumber(),
+        'numMoves':game[6].toNumber(),
+        'moves': moves.map( move => move.toNumber() )
+      }
+    );
+  },
+
   setGameState: function(address, game){
     game['state']={
       'active':false,
@@ -26,14 +43,14 @@ module.exports = {
 
   getGamesInfo: function(games){
     var escrow = 0,
-        numgames = {'inplay':0,'open':0,'over':0,'total':games.length};
+        contractgames = {'inplay':0,'open':0,'over':0,'total':games.length};
         usergames = {'total':0,'active':0,'open':0,'waiting':0};
 
     games.forEach( game => {
-      if( game.state.over ) return numgames.over++;
+      if( game.state.over ) return contractgames.over++;
       escrow += game.bet;
       if( 1 < game.numMoves ) escrow += game.wager;
-      if(game.state.open) numgames.open++;
+      if(game.state.open) contractgames.open++;
       if(game.state.player){
         usergames.total++;
         if( game.state.open) usergames.open++;
@@ -41,8 +58,8 @@ module.exports = {
         if( ! ( game.state.open || game.state.active ) ) usergames.waiting++; 
       }
     });
-    numgames.inplay = numgames.total - numgames.open - numgames.over;
-    return[escrow,usergames,numgames]
+    contractgames.inplay = contractgames.total - contractgames.open - contractgames.over;
+    return[escrow,contractgames,usergames]
   },
 
   sortGames: function(a,b){
@@ -65,12 +82,11 @@ module.exports = {
       if( game.deadline == 0 ) escrow -= game.bet;
       else if( game.deadline == 1 ) escrow -= game.bet + game.wager;
       else if( game.deadline == 2 || game.deadline == 3 )
-        escrow += ( game.bet + game.wager ) / 100; // Use contract parameter
+        escrow -= 99 * ( game.bet + game.wager ) / 100
     }
     else if( game.numMoves == 1 ){
       escrow += game.bet;
       numgames.open++;
-      numgames.total++;
     }
     else if ( game.numMoves == 2 ){
       escrow += game.wager;

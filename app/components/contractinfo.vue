@@ -1,6 +1,6 @@
 <script>
 export default {
-  props:[ 'numgames', 'escrow','contractbal', 'fees', 'motheraddr' ],
+  props:[ 'contract' ],
   data: function() {
     return {};
   }
@@ -11,15 +11,15 @@ export default {
 <div class="contractinfo">
   <h1>tictactoeth</h1>
   <table>
-    <tr class="motheraddr"><td>{{ motheraddr }}</td><td>Address</td></tr>
-    <tr class="balance"><td>{{(contractbal/1000000000000000000).toFixed(18)}} ETH</td><td>Balance</td></tr>
-    <tr class="escrow"><td>{{ (escrow / 1000000000000000000).toFixed(18) }} ETH</td><td>Escrow</td></tr>
-    <tr class="fees"><td>{{(fees/1000000000000000000).toFixed(18)}} ETH</td><td>Fees</td></tr>
-    <tr class="total" v-bind:class="{ 'red': contractbal != escrow + fees }"><td>{{ ((escrow + fees) / 1000000000000000000).toFixed(18) }} ETH</td><td>Total</td></tr>
-    <tr class="inplay"><td>{{ numgames.inplay }}</td><td>In Play</td></tr>
-    <tr class="open"><td>{{ numgames.open }}</td><td>Open</td></tr>
-    <tr class="over"><td>{{ numgames.over }}</td><td>Over</td></tr>
-    <tr class="totalgames"><td>{{ numgames.total }}</td><td>Games</td></tr>
+    <tr class="address"><td>{{ contract.address }}</td><td>Address</td></tr>
+    <tr class="balance"><td>{{(contract.balance / 1000000000000000000).toFixed(18)}} ETH</td><td>Balance</td></tr>
+    <tr class="escrow"><td>{{ (contract.escrow / 1000000000000000000).toFixed(18) }} ETH</td><td>Escrow</td></tr>
+    <tr class="fees"><td>{{(contract.fees/1000000000000000000).toFixed(18)}} ETH</td><td>Fees</td></tr>
+    <tr class="total" v-bind:class="{ 'red': contract.balance != contract.escrow + contract.fees }"><td>{{ ((contract.escrow + contract.fees) / 1000000000000000000).toFixed(18) }} ETH</td><td>Total</td></tr>
+    <tr class="inplay"><td>{{ contract.numgames.inplay }}</td><td>In Play</td></tr>
+    <tr class="open"><td>{{ contract.numgames.open }}</td><td>Open</td></tr>
+    <tr class="over"><td>{{ contract.numgames.over }}</td><td>Over</td></tr>
+    <tr class="totalgames"><td>{{ contract.numgames.total }}</td><td>Games</td></tr>
   </table>
 </div>
 </template>

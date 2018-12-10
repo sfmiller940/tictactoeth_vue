@@ -1,9 +1,10 @@
 
 module.exports = {
-  getAccounts: function(){
+
+  getAccount: function(){
     return new Promise((resolve,reject)=>{
       web3.eth.getAccounts((e, accounts)=>{
-        if ( ! e ) resolve(accounts);
+        if ( ! e ) resolve(accounts[0]);
         else reject( 'Unable to get accounts: '+e );
       });
     });
