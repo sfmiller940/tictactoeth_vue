@@ -147,11 +147,11 @@ export default {
       :useraddr="user.address"
       :blocknumber="blocknumber"
     />
-    <listgames
-      :useraddr="user.address"
-      :games="games"
-    />
   </header>
+  <listgames
+    :useraddr="user.address"
+    :games="games"
+  />
 </div>
 </template>
 
