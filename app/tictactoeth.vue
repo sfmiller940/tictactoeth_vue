@@ -6,7 +6,9 @@ import {
   getBalance as apiGetBalance,
   getBlockNumber as apiGetBlockNumber,
   getFees as apiGetFees,
-  getGameEvents as apiGetGameEvents
+  getGameData as apiGetGameData,
+  getGameEvents as apiGetGameEvents,
+  getNumGames as apiGetNumGames
 } from './api';
 
 import userinfo from './components/userinfo'
@@ -55,11 +57,11 @@ export default {
 
   mounted: function(){
     var self=this;
-    this.refreshHeader().then(() => this.loadGames());
+    this.updateHeader().then(() => this.loadGames());
 
     web3.eth.subscribe('newBlockHeaders',async (e,data)=>{
       if(!e){ 
-        this.refreshHeader();
+        this.updateHeader();
         var events = await apiGetGameEvents();
         events.forEach( event => this.updateGame(event.args.id.toNumber()));
       } 
@@ -69,61 +71,47 @@ export default {
 
   methods:{
 
-    refreshHeader: async function(){  
+    updateHeader: async function(){  
       try{
-        this.contract.numgames.total = (await ttt.numGames.call()).toNumber();
         this.user.address = await apiGetAccount();
         [ this.blocknumber,
           this.contract.balance,
           this.contract.fees,
+          this.contract.numgames.total,
           this.user.balance
         ] = await Promise.all([
           apiGetBlockNumber(),
           apiGetBalance(this.contract.address),
           apiGetFees(),
+          apiGetNumGames(),
           apiGetBalance(this.user.address)
         ]);
-      } catch(e){ console.log('Error refreshing header: ',e); }
+      } catch(e){ console.log('Error updating header: ',e); }
     },
 
     loadGames: async function(){
       try{
-        var games = new Array(this.contract.numgames.total).fill(0);
-        await Promise.all(
-          games.map((blank,id)=>{
-            return Promise.all([
-              ttt.games.call(id),
-              ttt.getMoves.call(id)
-            ]);
+        var games = await Promise.all( 
+          Array.from({ length: this.contract.numgames.total }, async (e, id)=>{
+            return gm.processData(this.user.address, id, await apiGetGameData(id));
           })
-        ).then(data => {
-          data.forEach(([game,moves],id)=>{
-            games[id] = gm.processData(this.user.address, id, game, moves);
-          });
-        });
+        );
 
         [ this.contract.escrow, 
           this.contract.numgames, 
           this.user.numgames
         ] = gm.getGamesInfo(games);
 
-        games = games
+        this.games = games
           .filter( game => game.state.player || game.state.open )
           .sort(gm.sortGames);
-        
-        this.games = games;
       } 
       catch(e){ console.log('Error loading games: ',e); }
     },
 
     updateGame: async function(id){
       try{
-        var game = await Promise.all([
-            ttt.games.call(id),
-            ttt.getMoves.call(id)
-          ]).then(([game,moves])=>{ 
-            return gm.processData(this.user.address, id, game, moves); 
-          });
+        var game = gm.processData(this.user.address, id, await apiGetGameData(id)); 
 
         [ this.contract.escrow, 
           this.contract.numgames
