@@ -56,7 +56,6 @@ export default {
   },
 
   mounted: function(){
-    var self=this;
     this.updateHeader().then(() => this.loadGames());
 
     web3.eth.subscribe('newBlockHeaders',async (e,data)=>{
@@ -92,7 +91,7 @@ export default {
     loadGames: async function(){
       try{
         var games = await Promise.all( 
-          Array.from({ length: this.contract.numgames.total }, async (e, id)=>{
+          Array.from({ length: this.contract.numgames.total }, async (_, id)=>{
             return gm.processData(this.user.address, id, await apiGetGameData(id));
           })
         );
