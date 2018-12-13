@@ -61,8 +61,7 @@ export default {
     web3.eth.subscribe('newBlockHeaders',async (e,data)=>{
       if(!e){ 
         this.updateHeader();
-        var events = await apiGetGameEvents();
-        events.forEach( event => this.updateGame(event.args.id.toNumber()));
+        (await apiGetGameEvents()).forEach( event => this.updateGame(event.args.id.toNumber()));
       } 
       else console.log('Block subscription error: ',e);
     });
