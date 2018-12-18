@@ -2,7 +2,7 @@
 import { 
   joinGame as apiJoinGame,
   newMove as apiNewMove
-} from '../lib/api'
+} from '../../lib/api'
 
 export default {
 
@@ -47,7 +47,7 @@ export default {
 
 
 <style lang="scss" scoped>
-@import '../scss/variables';
+@import '../../scss/variables';
 
 .moves{
     width: 100%;

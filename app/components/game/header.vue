@@ -2,7 +2,7 @@
 import { 
   newMove as apiNewMove,
   cancelGame as apiCancelGame
-} from '../lib/api'
+} from '../../lib/api'
 
 export default {
 
