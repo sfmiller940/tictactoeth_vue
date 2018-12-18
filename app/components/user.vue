@@ -8,7 +8,7 @@ export default {
 </script>
 
 <template>
-<div class="userinfo">
+<section class="userinfo">
   <h2>your account</h2>
   <table>
     <tr class="address"><td>Address:</td><td>{{ user.address }}</td></tr>
@@ -18,7 +18,7 @@ export default {
     <tr class="open"><td>Open:</td><td>{{ user.numgames.open }}</td></tr>
     <tr class="total"><td>Games:</td><td>{{ user.numgames.total }}</td></tr>
   </table>
-</div>
+</section>
 </template>
 
 <style lang="scss" scoped>

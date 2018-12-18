@@ -1,5 +1,5 @@
 <script>
-var gm = require('./game')
+var gm = require('./lib/game')
 
 import {
   getAccount as apiGetAccount,
@@ -9,21 +9,21 @@ import {
   getGameData as apiGetGameData,
   getGameEvents as apiGetGameEvents,
   getNumGames as apiGetNumGames
-} from './api';
+} from './lib/api';
 
-import userinfo from './components/userinfo'
-import newgame from './components/newgame'
-import contractinfo from './components/contractinfo'
-import listgames from './components/listgames'
+import compUser from './components/user'
+import compNewGame from './components/newgame'
+import compContract from './components/contract'
+import compGames from './components/games'
 
 export default {
   name: 'tictactoeth',
 
   components: {
-    userinfo,
-    newgame,
-    contractinfo,
-    listgames
+    compUser,
+    compNewGame,
+    compContract,
+    compGames
   },
 
   data: function(){
@@ -133,28 +133,28 @@ export default {
 </script>
 
 <template>
-<div id="tictactoeth">
+<main id="tictactoeth">
   <header>
-    <contractinfo
+    <compContract
       :contract="contract"
     />
-    <userinfo
+    <compUser
       :user="user"
     />
-    <newgame
+    <compNewGame
       :useraddr="user.address"
       :blocknumber="blocknumber"
     />
   </header>
-  <listgames
+  <compGames
     :useraddr="user.address"
     :games="games"
   />
-</div>
+</main>
 </template>
 
 <style lang="scss">
-@import 'scss/mixins';
+@import 'scss/variables';
 
 body,html {
   font-family: "Open Sans", sans-serif;

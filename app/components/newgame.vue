@@ -1,5 +1,5 @@
 <script>
-import { newGame as apiNewGame } from '../api'
+import { newGame as apiNewGame } from '../lib/api'
 
 export default {
   props:['useraddr','blocknumber'],
@@ -29,14 +29,14 @@ export default {
 </script>
 
 <template>
-<div class="newgame">
-  <h2>new game / block {{blocknumber}}</h2>
+<section class="newgame">
   <header>
-    <div class="input">
+    <h2>new game / block {{blocknumber}}</h2>
+    <div class="input bet">
       Your Bet
       <input type="number" v-model.number="bet" placeholder="Your Bet">
     </div>
-    <div class="input">
+    <div class="input wager">
       Opponent's Wager
       <input type="number" v-model.number="wager" placeholder="Opponent's Wager">
     </div>
@@ -69,19 +69,19 @@ export default {
       </select>
     </div>
   </header>
-  <div class="gamegrid">
+  <section class="gamegrid">
     <div class="move" v-for="ind in 9">
       <button v-on:click="newGame( ind - 1 )"><i class="fa fa-times"></i></button>
     </div>
-  </div>
+  </section>
   <footer>
     Click square to create game.
   </footer>
-</div>
+</section>
 </template>
 
 <style lang="scss" scoped>
-@import '../scss/mixins';
+@import '../scss/variables';
 
 h2{
   text-align: center;
@@ -97,8 +97,8 @@ header{
     float: left;
     width: 100%;
 
-    &:first-child,
-    &:nth-child(2){
+    &.bet,
+    &.wager{
       width: 50%;
       box-sizing: border-box;
       margin: 0 0 0.5rem;
@@ -111,7 +111,7 @@ header{
       }
     }
 
-    &:first-child{
+    &.bet{
       padding-right: 0.5rem;
 
       &:after{
@@ -119,7 +119,7 @@ header{
       }
     }
 
-    &:nth-child(2){
+    &.wager{
       padding-left: 0.5rem;
       &:after{
         right: 0.5rem;

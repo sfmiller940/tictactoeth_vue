@@ -8,7 +8,7 @@ export default {
 </script>
 
 <template>
-<div class="contractinfo">
+<section class="contractinfo">
   <h1>tictactoeth</h1>
   <table>
     <tr class="address"><td>{{ contract.address }}</td><td>Address</td></tr>
@@ -21,7 +21,7 @@ export default {
     <tr class="over"><td>{{ contract.numgames.over }}</td><td>Over</td></tr>
     <tr class="totalgames"><td>{{ contract.numgames.total }}</td><td>Games</td></tr>
   </table>
-</div>
+</section>
 </template>
 
 <style lang="scss" scoped>

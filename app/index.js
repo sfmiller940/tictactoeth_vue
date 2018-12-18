@@ -16,6 +16,8 @@ window.addEventListener('load', function() {
   }
   tttcontract.setProvider(web3.currentProvider);
 
+  // Rinkeby: 0x52d1c37d38534039c5a84ee8030870ad2e492171
+
   tttcontract.deployed().then(function(instance) {
     window.ttt = instance;
     new Vue({
@@ -25,4 +27,3 @@ window.addEventListener('load', function() {
     })
   });
 });
-
