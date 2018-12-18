@@ -1,7 +1,7 @@
 <script>
-import compHeader from './gameheader';
-import compGrid from './gamegrid';
-import compFooter from './gamefooter';
+import compHeader from './game/header';
+import compGrid from './game/grid';
+import compFooter from './game/footer';
 
 export default {
 
