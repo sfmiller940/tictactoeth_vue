@@ -1,6 +1,6 @@
 <script>
 export default {
-  props:[ 'contract' ],
+  props:[ 'contract', 'network' ],
   data: function() {
     return {};
   }
@@ -11,6 +11,7 @@ export default {
 <section class="contractinfo">
   <h1>tictactoeth</h1>
   <table>
+    <tr class="network"><td>{{ network }}</td><td>Network</td></tr>
     <tr class="address"><td>{{ contract.address }}</td><td>Address</td></tr>
     <tr class="balance"><td>{{(contract.balance / 1000000000000000000).toFixed(18)}} ETH</td><td>Balance</td></tr>
     <tr class="escrow"><td>{{ (contract.escrow / 1000000000000000000).toFixed(18) }} ETH</td><td>Escrow</td></tr>
@@ -44,6 +45,10 @@ table{
   tr:first-child td:first-child{
     word-break: break-all;
     vertical-align: middle;
+  }
+
+  tr.network td{
+    text-transform: capitalize;
   }
 
   tr.total td{

@@ -1,6 +1,7 @@
 module.exports = {
   processData:processData,
   getGamesInfo:getGamesInfo,
+  isDisplayed:isDisplayed,
   sortGames:sortGames,
   updateContractInfo:updateContractInfo,
   updateUserGames:updateUserGames
@@ -61,6 +62,10 @@ function getGamesInfo(games){
   });
   contractgames.inplay = contractgames.total - contractgames.open - contractgames.over;
   return[escrow,contractgames,usergames]
+}
+
+function isDisplayed(game){
+  return game.state.player || ( game.state.open && ! game.state.over );
 }
 
 function sortGames(a,b){

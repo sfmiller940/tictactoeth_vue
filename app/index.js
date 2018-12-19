@@ -6,19 +6,28 @@ var tttcontract = contract(artifacts);
 import Vue from 'vue'
 import tictactoeth from './tictactoeth'
 
-window.addEventListener('load', function() {
-  if (typeof web3 !== 'undefined') {
-    console.warn("Using web3 detected from external source. If you find that your accounts don't appear or you have 0 MetaCoin, ensure you've configured that source properly. If using MetaMask, see the following link. Feel free to delete this warning. :) http://truffleframework.com/tutorials/truffle-and-metamask")
-    window.web3 = new Web3(web3.currentProvider);
-  } else {
-    console.warn("No web3 detected. Falling back to http://localhost:8545. You should remove this fallback when you deploy live, as it's inherently insecure. Consider switching to Metamask for development. More info here: http://truffleframework.com/tutorials/truffle-and-metamask");
-    window.web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+window.addEventListener('load', async function() {
+
+  if (window.ethereum) { // Modern dapp browsers
+    window.web3 = new Web3(ethereum);
+    try { await ethereum.enable(); } 
+    catch (e) { console.log('User denied account: ',e); }
   }
+  else if (window.web3) { // Legacy dapp browsers
+      window.web3 = new Web3(web3.currentProvider);
+  }
+  else { // Non-dapp browsers
+      console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+  }
+
   tttcontract.setProvider(web3.currentProvider);
 
-  // Rinkeby: 0x52d1c37d38534039c5a84ee8030870ad2e492171
+  var network = await web3.eth.net.getNetworkType()
+  if(network == 'private') network = tttcontract.deployed();
+  else if(network == 'rinkeby') network = tttcontract.at('0x52d1c37d38534039c5a84ee8030870ad2e492171');
+  else console.log('Not deployed on this network');
 
-  tttcontract.deployed().then(function(instance) {
+  network.then(function(instance) {
     window.ttt = instance;
     new Vue({
       el: '#tictactoeth',

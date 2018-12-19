@@ -28,6 +28,7 @@ export default {
 
   data: function(){
     return {
+      'network':'',
       'blocknumber':0,
       'games':[],
       'contract':{
@@ -56,18 +57,18 @@ export default {
   },
 
   mounted: function(){
-    this.updateHeader().then(() => this.loadGames());
 
-    web3.eth.subscribe('newBlockHeaders',async (e,data)=>{
-      if(!e){ 
-        this.updateHeader();
-        (await apiGetGameEvents()).forEach( event => this.updateGame(event.args.id.toNumber()));
-      } 
-      else console.log('Block subscription error: ',e);
-    });
+    this.reload();
+    
+    this.watchBlocks();
+    this.watchAccount();
   },
 
   methods:{
+
+    reload: function(){
+      this.updateHeader().then( this.loadGames );
+    },
 
     updateHeader: async function(){  
       try{
@@ -76,12 +77,14 @@ export default {
           this.contract.balance,
           this.contract.fees,
           this.contract.numgames.total,
+          this.network,
           this.user.balance
         ] = await Promise.all([
           apiGetBlockNumber(),
           apiGetBalance(this.contract.address),
           apiGetFees(),
           apiGetNumGames(),
+          web3.eth.net.getNetworkType(),
           apiGetBalance(this.user.address)
         ]);
       } catch(e){ console.log('Error updating header: ',e); }
@@ -101,7 +104,7 @@ export default {
         ] = gm.getGamesInfo(games);
 
         this.games = games
-          .filter( game => game.state.player || game.state.open )
+          .filter( game => gm.isDisplayed(game) )
           .sort(gm.sortGames);
       } 
       catch(e){ console.log('Error loading games: ',e); }
@@ -118,7 +121,7 @@ export default {
         if(game.state.player)
           this.user.numgames = gm.updateUserGames(this.user.numgames, game);
 
-        if( game.state.player || game.state.open ){
+        if( gm.isDisplayed(game) ){
           var ind = this.games.findIndex( game => game.id == id );
           if( ind == -1 ) this.games.push(game);
           else this.games[ind] = game;
@@ -127,6 +130,36 @@ export default {
         }
       }
       catch(e){ console.log('Error updating games: ',e); }
+    },
+
+    watchBlocks: function(){
+      web3.eth.subscribe('newBlockHeaders',async (e,data)=>{
+        if(!e){ 
+          this.updateHeader();
+          (await apiGetGameEvents()).forEach( event => this.updateGame(event.args.id.toNumber()));
+        } 
+        else console.log('Block subscription error: ',e);
+      });      
+    },
+
+    watchAccount: function(){
+      var self = this;
+      if( web3.currentProvider.hasOwnProperty('publicConfigStore') ){
+        web3.currentProvider.publicConfigStore.on('update', function(data){
+          if( self.user.address != data.selectedAddress ){
+            self.user.address = data.selectedAddress;
+            self.reload();
+          }
+        });
+      }
+      else {
+        setInterval(function() {
+          if (web3.eth.accounts[0] != self.user.address) {
+            self.user.address = web3.eth.accounts[0];
+            self.reload();
+          }
+        }, 100);
+      }    
     }
   }
 }
@@ -137,6 +170,7 @@ export default {
   <header>
     <compContract
       :contract="contract"
+      :network="network"
     />
     <compUser
       :user="user"
