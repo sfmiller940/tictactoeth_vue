@@ -4,7 +4,7 @@ import artifacts from '../../tictactoeth_sol/build/contracts/tictactoeth.json'
 var tttcontract = contract(artifacts);
 
 import Vue from 'vue'
-import tictactoeth from './tictactoeth'
+import tttcomponent from './tictactoeth'
 
 window.addEventListener('load', async function() {
 
@@ -17,7 +17,7 @@ window.addEventListener('load', async function() {
       window.web3 = new Web3(web3.currentProvider);
   }
   else { // Non-dapp browsers
-      console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+      alert('Non-Ethereum browser detected. You should consider trying MetaMask!');
   }
 
   tttcontract.setProvider(web3.currentProvider);
@@ -31,8 +31,8 @@ window.addEventListener('load', async function() {
     window.ttt = instance;
     new Vue({
       el: '#tictactoeth',
-      components: { tictactoeth },
-      template: '<tictactoeth/>'
+      components: { tttcomponent },
+      template: '<tttcomponent/>'
     })
   });
 });
