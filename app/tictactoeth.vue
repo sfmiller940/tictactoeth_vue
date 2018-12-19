@@ -2,13 +2,15 @@
 var gm = require('./lib/game')
 
 import {
-  getAccount as apiGetAccount,
-  getBalance as apiGetBalance,
-  getBlockNumber as apiGetBlockNumber,
-  getFees as apiGetFees,
-  getGameData as apiGetGameData,
-  getGameEvents as apiGetGameEvents,
-  getNumGames as apiGetNumGames
+  getAccount,
+  getBalance,
+  getBlockNumber,
+  getFees,
+  getGameData,
+  getGameEvents,
+  getNetwork,
+  getNumGames,
+  getOwner
 } from './lib/api';
 
 import compUser from './components/user'
@@ -36,6 +38,7 @@ export default {
         'balance': 0,
         'escrow':0,
         'fees':0,
+        'owner':'',
         'numgames':{
           'inplay':0,
           'open':0,
@@ -72,20 +75,22 @@ export default {
 
     updateHeader: async function(){  
       try{
-        this.user.address = await apiGetAccount();
+        this.user.address = await getAccount();
         [ this.blocknumber,
           this.contract.balance,
           this.contract.fees,
           this.contract.numgames.total,
+          this.contract.owner,
           this.network,
           this.user.balance
         ] = await Promise.all([
-          apiGetBlockNumber(),
-          apiGetBalance(this.contract.address),
-          apiGetFees(),
-          apiGetNumGames(),
-          web3.eth.net.getNetworkType(),
-          apiGetBalance(this.user.address)
+          getBlockNumber(),
+          getBalance(this.contract.address),
+          getFees(),
+          getNumGames(),
+          getOwner(),
+          getNetwork(),
+          getBalance(this.user.address)
         ]);
       } catch(e){ console.log('Error updating header: ',e); }
     },
@@ -94,7 +99,7 @@ export default {
       try{
         var games = await Promise.all( 
           Array.from({ length: this.contract.numgames.total }, async (_, id)=>{
-            return gm.processData(this.user.address, id, await apiGetGameData(id));
+            return gm.processData(this.user.address, id, await getGameData(id));
           })
         );
 
@@ -112,7 +117,7 @@ export default {
 
     updateGame: async function(id){
       try{
-        var game = gm.processData(this.user.address, id, await apiGetGameData(id)); 
+        var game = gm.processData(this.user.address, id, await getGameData(id)); 
 
         [ this.contract.escrow, 
           this.contract.numgames
@@ -136,7 +141,7 @@ export default {
       web3.eth.subscribe('newBlockHeaders',async (e,data)=>{
         if(!e){ 
           this.updateHeader();
-          (await apiGetGameEvents()).forEach( event => this.updateGame(event.args.id.toNumber()));
+          (await getGameEvents()).forEach( event => this.updateGame(event.args.id.toNumber()));
         } 
         else console.log('Block subscription error: ',e);
       });      

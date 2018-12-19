@@ -22,7 +22,7 @@ window.addEventListener('load', async function() {
 
   tttcontract.setProvider(web3.currentProvider);
 
-  var network = await web3.eth.net.getNetworkType()
+  var network = await web3.eth.net.getNetworkType();
   if(network == 'private') network = tttcontract.deployed();
   else if(network == 'rinkeby') network = tttcontract.at('0x52d1c37d38534039c5a84ee8030870ad2e492171');
   else console.log('Not deployed on this network');

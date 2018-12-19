@@ -12,7 +12,10 @@ export default {
   <h1>tictactoeth</h1>
   <table>
     <tr class="network"><td>{{ network }}</td><td>Network</td></tr>
-    <tr class="address"><td>{{ contract.address }}</td><td>Address</td></tr>
+    <tr class="address"><td>
+      <span v-if="network == 'rinkeby'"><a :href="'https://rinkeby.etherscan.io/address/'+contract.address" target="_blank">{{ contract.address }}</a></span>
+      <span v-else>{{ contract.address }}</span>
+    </td><td>Address</td></tr>
     <tr class="balance"><td>{{(contract.balance / 1000000000000000000).toFixed(18)}} ETH</td><td>Balance</td></tr>
     <tr class="escrow"><td>{{ (contract.escrow / 1000000000000000000).toFixed(18) }} ETH</td><td>Escrow</td></tr>
     <tr class="fees"><td>{{(contract.fees/1000000000000000000).toFixed(18)}} ETH</td><td>Fees</td></tr>

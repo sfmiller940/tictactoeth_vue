@@ -6,7 +6,9 @@ module.exports={
   getFees:getFees,
   getGameData:getGameData,
   getGameEvents:getGameEvents,
+  getNetwork:getNetwork,
   getNumGames:getNumGames,
+  getOwner:getOwner,
   newGame:newGame,
   cancelGame:cancelGame,
   joinGame:joinGame,
@@ -64,8 +66,16 @@ async function getGameEvents(){
   });
 }
 
+async function getNetwork(){
+  return (await web3.eth.net.getNetworkType());
+}
+
 async function getNumGames(){
   return (await ttt.numGames.call()).toNumber();
+}
+
+async function getOwner(){
+  return (await ttt.owner.call());
 }
 
 async function newGame(address,bet,wager,turn,move){
