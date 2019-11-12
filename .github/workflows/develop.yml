@@ -7,7 +7,7 @@ on:
 
 jobs:
 
-  install_build_deploy:
+  install_build:
 
     runs-on: ubuntu-latest
 
@@ -23,12 +23,3 @@ jobs:
 
     - name: npm run build
       run: npm run build
-
-    - name: ftp deploy
-      uses: sfmiller940/ftp-action@master
-      with:
-        host: ${{ secrets.TTT_HOST}}
-        user: ${{ secrets.TTT_USERNAME }}
-        password: ${{ secrets.TTT_PASSWORD }}
-        localDir: "dist"
-        remoteDir: ${{ secrets.TTT_PATH }}

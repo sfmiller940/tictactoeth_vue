@@ -1,0 +1,34 @@
+name: Node CI
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+
+  install_build_deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: '11.x'
+
+    - name: npm install
+      run: npm install
+
+    - name: npm run build
+      run: npm run build
+
+    - name: ftp deploy
+      uses: sfmiller940/ftp-action@master
+      with:
+        host: ${{ secrets.TTT_HOST}}
+        user: ${{ secrets.TTT_USERNAME }}
+        password: ${{ secrets.TTT_PASSWORD }}
+        localDir: "dist"
+        remoteDir: ${{ secrets.TTT_PATH }}
