@@ -1,6 +1,6 @@
 import { default as Web3 } from 'web3';
 import { default as contract } from 'truffle-contract'
-import artifacts from '../../tictactoeth_sol/build/contracts/tictactoeth.json'
+import artifacts from './tictactoeth.json'
 var tttcontract = contract(artifacts);
 
 import Vue from 'vue'
