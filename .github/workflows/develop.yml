@@ -31,4 +31,4 @@ jobs:
         user: ${{ secrets.TTT_USERNAME }}
         password: ${{ secrets.TTT_PASSWORD }}
         localDir: "dist"
-        remoteDir: ${{ secrets.TTT_DIR }}
+        remoteDir: ${{ secrets.TTT_PATH }}
