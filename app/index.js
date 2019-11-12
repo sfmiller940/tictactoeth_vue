@@ -25,7 +25,8 @@ window.addEventListener('load', async function() {
   var network = await web3.eth.net.getNetworkType();
   if(network == 'private') network = tttcontract.deployed();
   else if(network == 'rinkeby') network = tttcontract.at('0x52d1c37d38534039c5a84ee8030870ad2e492171');
-  else alert('Not deployed on this network! Try Rinkeby network instead.');
+  else if(network == 'main') network = tttcontract.at('0x94098C4ae3B78c11635B8F8fb73f5bD31C31B6eE');
+  else alert('This contract deployed on the main network and the rinkeby test network. Your network is: ' + network );
 
   network.then(function(instance) {
     window.ttt = instance;

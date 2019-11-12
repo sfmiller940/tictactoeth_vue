@@ -14,6 +14,7 @@ export default {
     <tr class="network"><td>{{ network }}</td><td>Network</td></tr>
     <tr class="address"><td>
       <span v-if="network == 'rinkeby'"><a :href="'https://rinkeby.etherscan.io/address/'+contract.address" target="_blank">{{ contract.address }}</a></span>
+      <span v-if="network == 'main'"><a :href="'https://etherscan.io/address/'+contract.address" target="_blank">{{ contract.address }}</a></span>
       <span v-else>{{ contract.address }}</span>
     </td><td>Address</td></tr>
     <tr class="balance"><td>{{(contract.balance / 1000000000000000000).toFixed(18)}} ETH</td><td>Balance</td></tr>
